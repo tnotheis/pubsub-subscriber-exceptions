@@ -3,12 +3,15 @@ using Google.Cloud.PubSub.V1;
 
 const string projectId = "<...>";
 const string subscriptionId = "<...>";
-var gcpCredentials = GoogleCredential.FromJson("<...>");
+var credentials = GoogleCredential.FromJson("<...>");
 
-var subscriberClient = new SubscriberClientBuilder
-{
-    GoogleCredential = gcpCredentials,
-    SubscriptionName = SubscriptionName.FromProjectSubscription(projectId, subscriptionId)
-}.Build();
+var subscriberClient = new SubscriberClientImpl(
+    new SubscriptionName(projectId, subscriptionId),
+    new List<SubscriberServiceApiClient>
+    {
+        new SubscriberServiceApiClientBuilder { GoogleCredential = credentials }.Build()
+    },
+    new SubscriberClient.Settings(),
+    () => Task.CompletedTask);
 
 await subscriberClient.StartAsync((_, _) => Task.FromResult(SubscriberClient.Reply.Ack));
